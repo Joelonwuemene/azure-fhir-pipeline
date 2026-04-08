@@ -22,7 +22,7 @@ SELECT
     JSON_VALUE(doc, '$.birthDate')     AS birth_date,
     JSON_VALUE(doc, '$.gender')        AS gender
 FROM OPENROWSET(
-    BULK 'https://<stadlshipaajoell>.dfs.core.windows.net/<fhir-export>/Patient/*.ndjson',
+    BULK 'https://stadlshipaajoell.dfs.core.windows.net/fhir-export/Patient/*.ndjson',
     FORMAT = 'CSV',
     FIELDQUOTE = '0x0b',
     FIELDTERMINATOR = '0x0b',
@@ -47,7 +47,7 @@ SELECT
     JSON_VALUE(doc, '$.valueQuantity.unit')            AS result_unit,
     JSON_VALUE(doc, '$.effectiveDateTime')             AS effective_date
 FROM OPENROWSET(
-    BULK 'https://<stadlshipaajoell>.dfs.core.windows.net/<fhir-export>/Observation/*.ndjson',
+    BULK 'https://stadlshipaajoell.dfs.core.windows.net/fhir-export/Observation/*.ndjson',
     FORMAT = 'CSV',
     FIELDQUOTE = '0x0b',
     FIELDTERMINATOR = '0x0b',
@@ -69,7 +69,7 @@ SELECT
     JSON_VALUE(doc, '$.gender')                AS gender,
     JSON_VALUE(doc, '$.meta.tag[0].code')      AS anonymization_tag        -- Expected: CRYPTOHASH
 FROM OPENROWSET(
-    BULK 'https://<stadlshipaajoell>.dfs.core.windows.net/<fhir-export>/Patient/*.ndjson',
+    BULK 'https://stadlshipaajoell.dfs.core.windows.net/fhir-export/Patient/*.ndjson',
     FORMAT = 'CSV',
     FIELDQUOTE = '0x0b',
     FIELDTERMINATOR = '0x0b',
