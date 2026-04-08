@@ -1,0 +1,36 @@
+{
+  "fhirVersion": "R4",
+  "processingErrors": "raise",
+  "fhirPathRules": [
+    {
+      "path": "Patient.name",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "Patient.birthDate",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "nodesByType('HumanName')",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "nodesByType('Address')",
+      "method": "redact"
+    },
+    {
+      "path": "nodesByType('ContactPoint')",
+      "method": "redact"
+    },
+    {
+      "path": "Patient.identifier",
+      "method": "cryptoHash"
+    }
+  ],
+  "parameters": {
+    "dateShiftKey": "",
+    "cryptoHashKey": "REPLACE-WITH-KEYVAULT-REFERENCE",
+    "encryptKey": "",
+    "enablePartialAgesForRedact": true
+  }
+}
