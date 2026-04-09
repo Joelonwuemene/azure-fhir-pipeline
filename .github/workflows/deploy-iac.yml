@@ -1,0 +1,77 @@
+name: HIPAA IaC Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths: ['iac/**']
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Bicep
+        run: az bicep build --file iac/main.bicep
+
+  validate:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: What-If Preview
+        run: |
+          az deployment group what-if \
+            --resource-group rg-hipaa-apps \
+            --template-file iac/main.bicep \
+            --parameters @iac/parameters.lab.json
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy Bicep
+        run: |
+          az deployment group create \
+            --resource-group rg-hipaa-apps \
+            --template-file iac/main.bicep \
+            --parameters @iac/parameters.lab.json \
+            --mode Incremental
+
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Get FHIR token
+        id: token
+        run: |
+          TOKEN=$(az account get-access-token \
+            --resource https://ahdshipaajoell-fhirhipaajoell.fhir.azurehealthcareapis.com \
+            --query accessToken -o tsv)
+          echo "::add-mask::$TOKEN"
+          echo "fhir_token=$TOKEN" >> $GITHUB_OUTPUT
+      - name: FHIR metadata smoke test
+        run: |
+          curl -sf -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
+            https://ahdshipaajoell-fhirhipaajoell.fhir.azurehealthcareapis.com/metadata | \
+            jq '.fhirVersion' | grep -q '4.0.1'
