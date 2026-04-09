@@ -4,8 +4,12 @@
   "meta": {
     "profile": ["http://hl7.org/fhir/StructureDefinition/Patient"]
   },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">John Smith, DOB 1970-01-01</div>"
+  },
   "identifier": [{
-    "system": "http://hospital.example.org/patients",
+    "system": "urn:oid:2.16.840.1.113883.4.1",
     "value": "PATIENT001"
   }],
   "name": [{
