@@ -32,3 +32,4 @@ module serviceBus 'modules/servicebus.bicep' = {
 }
 
 output serviceBusEndpoint string = serviceBus.outputs.serviceBusEndpoint
+// validate trigger Thu Apr  9 03:11:09 AM UTC 2026
