@@ -4,7 +4,6 @@ targetScope = 'resourceGroup'
 param environment string = 'lab'
 
 param location string = resourceGroup().location
-
 param dataClassification string = 'PHI'
 param complianceFramework string = 'HIPAA'
 
@@ -23,15 +22,6 @@ module logAnalytics 'modules/loganalytics.bicep' = {
   }
 }
 
-module keyVault 'modules/keyvault.bicep' = {
-  name: 'keyVaultDeployment'
-  params: {
-    location: location
-    tags: tags
-    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
-  }
-}
-
 module serviceBus 'modules/servicebus.bicep' = {
   name: 'serviceBusDeployment'
   params: {
@@ -41,6 +31,4 @@ module serviceBus 'modules/servicebus.bicep' = {
   }
 }
 
-output keyVaultUri string = keyVault.outputs.keyVaultUri
 output serviceBusEndpoint string = serviceBus.outputs.serviceBusEndpoint
-// triggered Thu Apr  9 02:39:09 AM UTC 2026
