@@ -52,8 +52,7 @@ flowchart LR
     O --> P
 ```
 
-> Full architecture diagram: see [`/docs/architecture-overview.md`](./docs/architecture-overview.md) — PNG will be added in Task 4
-
+> Full architecture diagram: [`/docs/architecture-diagram.png`](./docs/architecture-diagram.png)
 ---
 
 ## Tech Stack
@@ -124,7 +123,7 @@ azure-fhir-pipeline/
 │   ├── architecture-overview.md       # Mermaid source + component narrative
 │   └── capability-statement.json      # AHDS FHIR CapabilityStatement
 │
-├── samples/                           # Reference HL7 and FHIR examples
+├── fhir-samples/                      # Reference HL7 and FHIR examples
 │   ├── sample-oru-r01.hl7             # Synthetic ORU_R01 lab result message
 │   └── sample-fhir-output.json        # Corresponding FHIR R4 bundle output
 │
