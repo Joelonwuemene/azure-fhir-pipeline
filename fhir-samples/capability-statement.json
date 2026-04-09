@@ -1,0 +1,55 @@
+{
+  "resourceType": "CapabilityStatement",
+  "id": "fhirhipaajoell-capability",
+  "status": "active",
+  "date": "2026-04-08",
+  "kind": "instance",
+  "software": {
+    "name": "Azure Health Data Services",
+    "version": "R4"
+  },
+  "fhirVersion": "4.0.1",
+  "format": ["json"],
+  "rest": [{
+    "mode": "server",
+    "resource": [
+      {
+        "type": "Patient",
+        "interaction": [
+          {"code": "read"},
+          {"code": "search-type"},
+          {"code": "create"}
+        ]
+      },
+      {
+        "type": "Observation",
+        "interaction": [
+          {"code": "read"},
+          {"code": "search-type"},
+          {"code": "create"}
+        ]
+      },
+      {
+        "type": "DiagnosticReport",
+        "interaction": [
+          {"code": "read"},
+          {"code": "create"}
+        ]
+      }
+    ],
+    "operation": [
+      {
+        "name": "$convert-data",
+        "definition": "http://hl7.org/fhir/OperationDefinition/Resource-convert"
+      },
+      {
+        "name": "$validate",
+        "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"
+      },
+      {
+        "name": "$export",
+        "definition": "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/export"
+      }
+    ]
+  }]
+}
