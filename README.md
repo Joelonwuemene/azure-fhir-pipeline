@@ -52,7 +52,7 @@ flowchart LR
     O --> P
 ```
 
-> Full architecture diagram PNG: [`/docs/architecture-diagram.png`](./docs/architecture-diagram.png)
+> Full architecture diagram: see [`/docs/architecture-overview.md`](./docs/architecture-overview.md) — PNG will be added in Task 4
 
 ---
 
