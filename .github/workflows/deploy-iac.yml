@@ -75,3 +75,29 @@ jobs:
           curl -sf -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
             https://ahdshipaajoell-fhirhipaajoell.fhir.azurehealthcareapis.com/metadata | \
             jq '.fhirVersion' | grep -q '4.0.1'
+
+  fhir-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache HL7 Validator
+        uses: actions/cache@v4
+        with:
+          path: validator_cli.jar
+          key: hl7-validator-latest
+      - name: Download HL7 Validator CLI
+        run: |
+          if [ ! -f validator_cli.jar ]; then
+            curl -L https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar \
+              -o validator_cli.jar
+          fi
+      - name: Validate FHIR samples
+        run: |
+          java -jar validator_cli.jar fhir-samples/patient.json -version 4.0.1
+          java -jar validator_cli.jar fhir-samples/observation.json -version 4.0.1
+          java -jar validator_cli.jar fhir-samples/diagnosticreport.json -version 4.0.1

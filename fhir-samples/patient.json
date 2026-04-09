@@ -1,0 +1,18 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-joel-001",
+  "meta": {
+    "profile": ["http://hl7.org/fhir/StructureDefinition/Patient"]
+  },
+  "identifier": [{
+    "system": "http://hospital.example.org/patients",
+    "value": "PATIENT001"
+  }],
+  "name": [{
+    "use": "official",
+    "family": "Smith",
+    "given": ["John"]
+  }],
+  "gender": "male",
+  "birthDate": "1970-01-01"
+}
