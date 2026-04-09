@@ -43,3 +43,4 @@ module serviceBus 'modules/servicebus.bicep' = {
 
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output serviceBusEndpoint string = serviceBus.outputs.serviceBusEndpoint
+// triggered Thu Apr  9 02:39:09 AM UTC 2026
