@@ -1,6 +1,10 @@
 {
   "resourceType": "DiagnosticReport",
   "id": "diagnosticreport-joel-001",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Comprehensive metabolic panel, John Smith, 2026-04-01</div>"
+  },
   "status": "final",
   "category": [{
     "coding": [{
@@ -13,7 +17,7 @@
     "coding": [{
       "system": "http://loinc.org",
       "code": "24323-8",
-      "display": "Comprehensive metabolic panel - Serum or Plasma"
+      "display": "Comprehensive metabolic 2000 panel - Serum or Plasma"
     }]
   },
   "subject": {
