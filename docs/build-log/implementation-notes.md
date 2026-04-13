@@ -1,4 +1,4 @@
-# Lessons Learned: W1-W9
+# Implementation Notes: Phase 01 - Phase 09
 
 This document records every significant problem encountered during the 12-week Azure Healthcare Integration build. Each entry includes what happened, what I initially believed, the actual root cause, and how it was resolved or worked around.
 
