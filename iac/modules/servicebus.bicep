@@ -1,9 +1,10 @@
+param namespaceName string
 param location string
 param tags object
 param logAnalyticsWorkspaceId string
 
-resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
-  name: 'sb-hipaa-hl7-joel'
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
+  name: namespaceName
   location: location
   tags: tags
   sku: {
@@ -13,19 +14,21 @@ resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
   properties: {}
 }
 
-resource hl7Queue 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-preview' = {
-  parent: serviceBus
+resource hl7InboundQueue 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-preview' = {
+  parent: serviceBusNamespace
   name: 'hl7-inbound'
   properties: {
-    maxDeliveryCount: 3
-    deadLetteringOnMessageExpiration: true
     lockDuration: 'PT5M'
+    maxDeliveryCount: 5
+    deadLetteringOnMessageExpiration: true
+    requiresDuplicateDetection: false
+    requiresSession: false
   }
 }
 
-resource sbDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'sb-diagnostics'
-  scope: serviceBus
+resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-${namespaceName}'
+  scope: serviceBusNamespace
   properties: {
     workspaceId: logAnalyticsWorkspaceId
     logs: [
@@ -34,8 +37,15 @@ resource sbDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview
         enabled: true
       }
     ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 
-output serviceBusId string = serviceBus.id
-output serviceBusEndpoint string = serviceBus.properties.serviceBusEndpoint
+output namespaceId string = serviceBusNamespace.id
+output namespaceName string = serviceBusNamespace.name
+output queueName string = hl7InboundQueue.name
