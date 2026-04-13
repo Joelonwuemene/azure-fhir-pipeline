@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "_comment": "This file documents the Logic App workflow structure. It is not a deployable artifact. See ADR-002 for the rationale. The authoritative workflow definition lives in the Azure Portal Designer for the Consumption tier Logic App.",
+  "contentVersion": "1.0.0.0",
+  "definition": {
+    "triggers": {
+      "Service_Bus_Message_Received": {
+        "type": "ServiceBusTrigger",
+        "inputs": {
+          "queueName": "hl7-inbound",
+          "connection": "@parameters('serviceBusConnection')"
+        },
+        "recurrence": {
+          "frequency": "Second",
+          "interval": 30
+        }
+      }
+    },
+    "actions": {
+      "Parse_HL7_Message": {
+        "type": "Compose",
+        "description": "Extract HL7 v2.x message content from Service Bus message body",
+        "inputs": "@base64ToString(triggerBody()?['ContentData'])"
+      },
+      "Convert_HL7_to_FHIR": {
+        "type": "Http",
+        "description": "Call AHDS $convert-data to transform HL7 v2.x to FHIR R4 Bundle",
+        "inputs": {
+          "method": "POST",
+          "uri": "@{parameters('fhirServiceUrl')}/$convert-data",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer @{body('Get_FHIR_Token')?['access_token']}"
+          },
+          "body": {
+            "resourceType": "Parameters",
+            "parameter": [
+              {
+                "name": "inputData",
+                "valueString": "@{outputs('Parse_HL7_Message')}"
+              },
+              {
+                "name": "inputDataType",
+                "valueString": "Hl7v2"
+              },
+              {
+                "name": "templateCollectionReference",
+                "valueString": "microsofthealth/hl7v2templates:default"
+              },
+              {
+                "name": "rootTemplate",
+                "valueString": "ORU_R01"
+              }
+            ]
+          }
+        }
+      },
+      "Call_Validation_Gate": {
+        "type": "Http",
+        "description": "POST converted FHIR resource to Azure Function $validate gate. Rejects on error/fatal OperationOutcome severity.",
+        "inputs": {
+          "method": "POST",
+          "uri": "@{parameters('validationFunctionUrl')}",
+          "headers": {
+            "Content-Type": "application/fhir+json"
+          },
+          "body": "@body('Convert_HL7_to_FHIR')"
+        }
+      },
+      "Write_to_FHIR_Store": {
+        "type": "Http",
+        "description": "POST validated FHIR resource to AHDS FHIR service. Only reached if validation gate passes.",
+        "runAfter": {
+          "Call_Validation_Gate": ["Succeeded"]
+        },
+        "inputs": {
+          "method": "POST",
+          "uri": "@{parameters('fhirServiceUrl')}/@{body('Convert_HL7_to_FHIR')?['resourceType']}",
+          "headers": {
+            "Content-Type": "application/fhir+json",
+            "Authorization": "Bearer @{body('Get_FHIR_Token')?['access_token']}"
+          },
+          "body": "@body('Convert_HL7_to_FHIR')"
+        }
+      },
+      "Dead_Letter_on_Validation_Failure": {
+        "type": "ServiceBusDeadLetter",
+        "description": "Move message to dead-letter queue if validation gate returns 422. Preserves OperationOutcome as message property.",
+        "runAfter": {
+          "Call_Validation_Gate": ["Failed"]
+        },
+        "inputs": {
+          "deadLetterReason": "FHIRValidationFailed",
+          "deadLetterErrorDescription": "@{body('Call_Validation_Gate')}"
+        }
+      }
+    }
+  }
+}

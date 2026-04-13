@@ -1,0 +1,43 @@
+{
+  "fhirVersion": "R4",
+  "processingError": "raise",
+  "fhirPathRules": [
+    {
+      "path": "nodesByType('HumanName')",
+      "method": "redact"
+    },
+    {
+      "path": "nodesByType('Address')",
+      "method": "redact"
+    },
+    {
+      "path": "nodesByType('ContactPoint')",
+      "method": "redact"
+    },
+    {
+      "path": "Patient.birthDate",
+      "method": "dateShift"
+    },
+    {
+      "path": "Patient.id",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "Patient.identifier",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "Observation.subject.reference",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "DiagnosticReport.subject.reference",
+      "method": "cryptoHash"
+    }
+  ],
+  "parameters": {
+    "dateShiftKey": "@Microsoft.KeyVault(SecretUri=https://<your-keyvault-name>.vault.azure.net/secrets/anonymization-dateshift-key/)",
+    "cryptoHashKey": "@Microsoft.KeyVault(SecretUri=https://<your-keyvault-name>.vault.azure.net/secrets/anonymization-crypto-key/)",
+    "dateShiftScope": "Resource"
+  }
+}
