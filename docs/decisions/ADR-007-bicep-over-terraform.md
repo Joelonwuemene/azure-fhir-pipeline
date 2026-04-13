@@ -16,7 +16,7 @@ Use Azure Bicep.
 
 **Native Azure type system.** Bicep compiles to ARM templates and has first-class support for every Azure resource type at GA. Terraform's AzureRM provider lags behind GA by weeks to months for new services. Azure Health Data Services resource types (`Microsoft.HealthcareApis/workspaces`, `Microsoft.HealthcareApis/workspaces/fhirservices`) were available in Bicep before the Terraform provider was updated.
 
-**No state file management.** Terraform requires a remote state backend — typically Azure Storage — which is itself infrastructure that must be managed, secured, and backed up. Bicep deployments are stateless from the toolchain perspective; resource state lives in Azure Resource Manager.
+**No state file management.** Terraform requires a remote state backend - typically Azure Storage - which is itself infrastructure that must be managed, secured, and backed up. Bicep deployments are stateless from the toolchain perspective; resource state lives in Azure Resource Manager.
 
 **GitHub Actions integration.** The `azure/arm-deploy` and native `az deployment group create` actions integrate with Bicep without additional tooling. Terraform requires a separate action, provider authentication configuration, and state locking setup.
 

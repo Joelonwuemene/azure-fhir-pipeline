@@ -6,7 +6,7 @@
 
 ## Context
 
-The pipeline transforms HL7 v2.x messages into FHIR R4 resources via the AHDS `$convert-data` operation. The conversion operation can succeed — returning a syntactically valid HTTP 200 response — while producing a FHIR resource that violates R4 profile constraints, contains incorrect LOINC codes, or references non-existent subjects.
+The pipeline transforms HL7 v2.x messages into FHIR R4 resources via the AHDS `$convert-data` operation. The conversion operation can succeed - returning a syntactically valid HTTP 200 response - while producing a FHIR resource that violates R4 profile constraints, contains incorrect LOINC codes, or references non-existent subjects.
 
 The question is where to enforce quality: before the FHIR write, or after via downstream validation and remediation.
 

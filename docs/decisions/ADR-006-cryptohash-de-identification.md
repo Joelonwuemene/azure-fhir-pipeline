@@ -16,7 +16,7 @@ Use `cryptoHash` for patient and subject identifiers. Use `redact` for direct id
 
 ## Rationale
 
-**Referential integrity.** Analytics queries across exported FHIR resources require the ability to join Observation and DiagnosticReport resources to their Patient subject. If Patient IDs are redacted, cross-resource joins are impossible. CRYPTOHASH preserves the join key — the hash of a given ID is consistent across all resources in the export — while making the original identifier unrecoverable without the key.
+**Referential integrity.** Analytics queries across exported FHIR resources require the ability to join Observation and DiagnosticReport resources to their Patient subject. If Patient IDs are redacted, cross-resource joins are impossible. CRYPTOHASH preserves the join key - the hash of a given ID is consistent across all resources in the export - while making the original identifier unrecoverable without the key.
 
 **Key management.** The CRYPTOHASH key is stored in Azure Key Vault and referenced in `anonymizationConfig.json` via the Key Vault reference syntax, not as a hardcoded value. This ensures the de-identification key is managed under the same access control and audit trail as other PHI-adjacent secrets.
 

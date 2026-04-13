@@ -10,7 +10,7 @@ This guide covers deploying the Azure HIPAA FHIR Pipeline to your own Azure subs
 - Python 3.11+ (for local Function testing)
 - Postman (for pipeline validation)
 
-## Step 1 — Create Resource Group
+## Step 1 - Create Resource Group
 
 ```bash
 RESOURCE_GROUP="rg-hipaa-apps"
@@ -22,7 +22,7 @@ az group create \
   --tags DataClassification=PHI ComplianceFramework=HIPAA Environment=lab Owner=your-name
 ```
 
-## Step 2 — Deploy IaC (Bicep)
+## Step 2 - Deploy IaC (Bicep)
 
 Set your deployment prefix. This drives all resource names. Use a short lowercase alphanumeric string (3-10 characters).
 
@@ -46,7 +46,7 @@ az deployment group create \
 
 This deploys: Log Analytics workspace, Service Bus namespace and queue, Key Vault, Azure Function App (with System-Assigned Managed Identity).
 
-## Step 3 — Manual Provisioning: AHDS and FHIR Service
+## Step 3 - Manual Provisioning: AHDS and FHIR Service
 
 Azure Health Data Services requires manual provisioning. AHDS workspace names must be lowercase alphanumeric with no hyphens (Azure validation constraint).
 
@@ -74,7 +74,7 @@ az healthcareapis fhir-service create \
 echo "FHIR endpoint: https://${AHDS_WORKSPACE}-${FHIR_SERVICE}.fhir.azurehealthcareapis.com"
 ```
 
-## Step 4 — Assign FHIR RBAC Roles
+## Step 4 - Assign FHIR RBAC Roles
 
 ```bash
 FHIR_SERVICE_ID=$(az healthcareapis fhir-service show \
@@ -96,7 +96,7 @@ az role assignment create \
   --scope $FHIR_SERVICE_ID
 ```
 
-## Step 5 — Deploy Azure Function Code
+## Step 5 - Deploy Azure Function Code
 
 ```bash
 cd src/functions/validate
@@ -108,7 +108,7 @@ pip install -r requirements.txt
 func azure functionapp publish "${PREFIX}-func-validate-lab" --python
 ```
 
-## Step 6 — Update Function App Settings
+## Step 6 - Update Function App Settings
 
 ```bash
 FHIR_URL="https://${AHDS_WORKSPACE}-${FHIR_SERVICE}.fhir.azurehealthcareapis.com"
@@ -119,7 +119,7 @@ az functionapp config appsettings set \
   --settings "FHIR_URL=${FHIR_URL}"
 ```
 
-## Step 7 — Manual Provisioning: Logic App
+## Step 7 - Manual Provisioning: Logic App
 
 The Logic App workflow definition must be configured in Azure Portal Designer. This is a known Consumption tier constraint documented in [ADR-002](decisions/ADR-002-logic-app-consumption-designer-save.md).
 
@@ -129,7 +129,7 @@ The Logic App workflow definition must be configured in Azure Portal Designer. T
 4. Wire the validation gate HTTP action to your deployed Function App URL.
 5. Save via the Designer Save button. Code View saves do not reliably persist.
 
-## Step 8 — Configure anonymizationConfig
+## Step 8 - Configure anonymizationConfig
 
 Before running `$export`, update `anonymizationConfig.json` to reference your Key Vault secrets:
 
@@ -146,7 +146,7 @@ az keyvault secret set \
   --value "$(openssl rand -base64 32)"
 ```
 
-## Step 9 — CI/CD Setup
+## Step 9 - CI/CD Setup
 
 See [docs/ci-cd-setup.md](ci-cd-setup.md) for OIDC configuration and GitHub Actions secrets setup.
 

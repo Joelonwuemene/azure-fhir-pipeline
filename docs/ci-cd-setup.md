@@ -1,4 +1,4 @@
-# CI/CD Setup — OIDC Configuration
+# CI/CD Setup - OIDC Configuration
 
 This document covers the one-time setup required to run the GitHub Actions pipeline (`deploy-iac.yml`) against your own Azure subscription using OIDC federated identity. No client secrets are stored.
 
@@ -8,18 +8,18 @@ This document covers the one-time setup required to run the GitHub Actions pipel
 - Contributor access on the target Azure subscription or resource group
 - Admin access to the GitHub repository
 
-## Step 1 — Create the Entra ID App Registration
+## Step 1 - Create the Entra ID App Registration
 
 ```bash
 # Create the app registration
 az ad app create --display-name "github-fhir-pipeline-deploy"
 
-# Note the appId from the output — this is AZURE_CLIENT_ID
+# Note the appId from the output - this is AZURE_CLIENT_ID
 APP_ID=$(az ad app list --display-name "github-fhir-pipeline-deploy" --query "[0].appId" -o tsv)
 echo "App ID (AZURE_CLIENT_ID): $APP_ID"
 ```
 
-## Step 2 — Create a Service Principal
+## Step 2 - Create a Service Principal
 
 ```bash
 az ad sp create --id $APP_ID
@@ -29,7 +29,7 @@ SP_ID=$(az ad sp show --id $APP_ID --query "id" -o tsv)
 echo "Service Principal Object ID: $SP_ID"
 ```
 
-## Step 3 — Add OIDC Federated Credential
+## Step 3 - Add OIDC Federated Credential
 
 This restricts token issuance to your specific repository and the `main` branch only.
 
@@ -48,7 +48,7 @@ az ad app federated-credential create \
   }"
 ```
 
-## Step 4 — Assign RBAC Role
+## Step 4 - Assign RBAC Role
 
 Grant the service principal Contributor on the resource group (not subscription).
 
@@ -62,7 +62,7 @@ az role assignment create \
   --scope "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}"
 ```
 
-## Step 5 — Configure GitHub Secrets
+## Step 5 - Configure GitHub Secrets
 
 In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add three secrets:
 
@@ -74,9 +74,9 @@ In your GitHub repository, go to **Settings > Secrets and variables > Actions** 
 
 These are identifiers, not credentials. They enable the OIDC token exchange but do not grant access on their own.
 
-## Step 6 — Verify Pipeline
+## Step 6 - Verify Pipeline
 
-Push a commit to `main`. The pipeline should authenticate and proceed through lint, validate, and deploy jobs. If the login step fails, the most common cause is a subject claim mismatch — verify the federated credential subject exactly matches `repo:<org>/<repo>:ref:refs/heads/main`.
+Push a commit to `main`. The pipeline should authenticate and proceed through lint, validate, and deploy jobs. If the login step fails, the most common cause is a subject claim mismatch - verify the federated credential subject exactly matches `repo:<org>/<repo>:ref:refs/heads/main`.
 
 ## Troubleshooting
 

@@ -80,6 +80,6 @@ See [docs/security.md](security.md) for the full RBAC model, encryption posture,
 | Service Bus namespace and queue | Deployed via `modules/servicebus.bicep` |
 | Key Vault | Deployed via `modules/keyvault.bicep` |
 | Azure Function App | Deployed via `modules/functionapp.bicep` |
-| AHDS workspace and FHIR service | Manual provisioning required — see [deployment-guide.md](deployment-guide.md) |
-| Logic App workflow | Manual Designer configuration required — see [ADR-002](decisions/ADR-002-logic-app-consumption-designer-save.md) |
+| AHDS workspace and FHIR service | Manual provisioning required - see [deployment-guide.md](deployment-guide.md) |
+| Logic App workflow | Manual Designer configuration required - see [ADR-002](decisions/ADR-002-logic-app-consumption-designer-save.md) |
 | ADLS Gen2 | Planned for future Bicep coverage |
