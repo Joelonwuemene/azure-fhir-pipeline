@@ -1,249 +1,178 @@
-# Azure Healthcare FHIR Integration Pipeline
+# Azure HIPAA FHIR Pipeline
 
-**End-to-end HL7 v2.x to FHIR R4 transformation pipeline on Azure — HIPAA-compliant, IaC-deployed, CI/CD automated.**
+A reference implementation of a HIPAA-compliant HL7 v2.x to FHIR R4 transformation pipeline on Microsoft Azure. Designed for medical device manufacturers and health systems connecting clinical devices to FHIR-based EHR platforms including Epic and Cerner.
 
-![Azure](https://img.shields.io/badge/Azure-Healthcare%20Data%20Services-0078D4?style=flat&logo=microsoftazure&logoColor=white)
-![FHIR](https://img.shields.io/badge/FHIR-R4-E8412A?style=flat)
-![HIPAA](https://img.shields.io/badge/Compliance-HIPAA-2E75B6?style=flat)
-![IaC](https://img.shields.io/badge/IaC-Bicep-orange?style=flat)
-![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
+## The Problem
 
----
+Medical devices generate HL7 v2.x messages. Modern EHR platforms consume FHIR R4 resources. The gap between these two standards is where integration failures occur — and in a clinical context, a message that converts successfully but writes malformed data to a FHIR store is more dangerous than one that fails outright. Most integration architectures catch the failure. Few catch the silent corruption before write.
 
-## Overview
-
-This repository documents a 10-week, self-directed build project implementing a production-pattern healthcare integration pipeline on Microsoft Azure. The pipeline ingests HL7 v2.x `ORU^R01` lab result messages, transforms them to FHIR R4 resources, validates them through a custom quality gate, persists them in Azure Health Data Services, and exports de-identified NDJSON to an analytics layer — all deployed from code, with zero stored secrets and a compliance gate enforced at every deployment.
-
-**Problem:** HL7 v2.x medical devices cannot natively connect to FHIR-based EHRs and analytics platforms. Bridging that gap in a HIPAA-compliant, auditable, and reproducible way requires cloud-native orchestration, structured identity management, and a validation layer that prevents invalid clinical data from propagating downstream.
-
-**Solution:** A fully integrated Azure pipeline using Logic Apps, Azure Functions, Azure Health Data Services, Bicep IaC, and GitHub Actions CI/CD — with HIPAA controls enforced at the infrastructure level, not as a post-deployment checklist.
-
----
+This pipeline enforces a validation gate at the transformation layer. A resource that fails FHIR $validate never reaches the FHIR store. The rejection is logged, auditable, and recoverable. That is the architectural decision most teams miss.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    A([HL7 v2.x Source\nORU_R01]) -->|Message| B[Azure Service Bus\nsb-hipaa-hl7-joel\nqueue: hl7-inbound]
-    B -->|Trigger| C[Logic App\nla-hipaa-hl7-processor]
-    C -->|HTTP POST| D[Azure Function\nfunc-hipaa-validate-joel\nOperationOutcome]
-    D -->|Pass| E{Validation\nGate}
-    D -->|Fail| F[Dead-Letter Queue\n+ Terminate]
-    E -->|Valid| G[Azure Health\nData Services\nfhirhipaajoell]
-    G --> H[Patient]
-    G --> I[Observation]
-    G --> J[DiagnosticReport]
-    G -->|$export| K[ADLS Gen2\nstadlshipaajoell]
-    K --> L[De-identification\nanonymizationConfig.json\nCRYPTOHASH]
-    L --> M[Synapse Serverless\nOPENROWSET Analytics]
+```
+HL7 Device / Simulator
+        │
+        ▼
+  Azure Service Bus
+  (hl7-inbound queue)
+        │
+        ▼
+  Logic App Orchestrator
+  (la-hipaa-hl7-processor)
+        │
+        ├──► Azure Function: FHIR Validation Gate
+        │    ($validate before write — rejects malformed resources)
+        │
+        ▼
+  Azure Health Data Services
+  (FHIR R4 Service)
+        │
+        ├──► ADLS Gen2 (bulk export + de-identification)
+        │
+        └──► Synapse Analytics (OPENROWSET queries on FHIR NDJSON)
 
-    subgraph Security & Governance
-        N[Key Vault\nkv-hipaa-phi-joel]
-        O[Log Analytics\nlaw-hipaa-joel]
-        P[Azure Monitor Alert\n5-min fire time]
-        Q[Budget Kill-Switch\n$80 / month]
-        R[GitHub Actions\nBicep IaC + OIDC]
-    end
-
-    C --> N
-    C --> O
-    G --> O
-    O --> P
+Cross-cutting:
+  Key Vault       — secrets and crypto key management
+  Log Analytics   — KQL audit trail for all pipeline events
+  Azure Policy    — deny-effect guardrails on resource compliance
+  GitHub Actions  — OIDC-authenticated CI/CD with Bicep IaC
 ```
 
-> Full architecture diagram: [`/docs/architecture-diagram.png`](./docs/architecture-diagram.png)
----
+Full architecture diagram: [docs/architecture/overview.md](docs/architecture/overview.md)
 
-## Tech Stack
+## Key Design Decisions
 
-| Component | Technology |
+| Decision | Rationale |
 |---|---|
-| Message Broker | Azure Service Bus — `sb-hipaa-hl7-joel`, queue `hl7-inbound` |
-| Orchestration | Azure Logic Apps (Consumption) — `la-hipaa-hl7-processor` |
-| HL7 Transformation | Azure Health Data Services `$convert-data` — `ORU_R01` Liquid template |
-| FHIR Server | Azure Health Data Services — `fhirhipaajoell` (workspace `ahdshipaajoell`) |
-| Validation | Azure Functions (Python 3.11) — `func-hipaa-validate-joel` + FHIR `OperationOutcome` |
-| Infrastructure as Code | Bicep — `/iac` folder, full pipeline coverage |
-| CI/CD | GitHub Actions — 5-job pipeline, OIDC federated identity, zero stored secrets |
-| Analytics | Azure Synapse Serverless — `OPENROWSET` over de-identified NDJSON |
-| De-identification | AHDS anonymization pipeline — `anonymizationConfig.json`, `CRYPTOHASH` + `redact` |
-| Secret Management | Azure Key Vault — `kv-hipaa-phi-joel`, RBAC access model |
-| Audit Trail | Log Analytics — `law-hipaa-joel`, KQL queries for PHI access patterns |
-| Identity | Azure Entra ID — SMART on FHIR scopes, OIDC federated identity for CI/CD |
+| Service Bus over Event Hub | Dead-letter routing, per-message lock token, and replay support for HL7 message recovery |
+| Validation gate before FHIR write | Silent data corruption in a clinical store is a HIPAA liability, not just a quality issue |
+| AHDS over Azure API for FHIR | Azure API for FHIR is retired. AHDS is the current Microsoft-supported path |
+| OIDC over client secret in CI/CD | Eliminates stored credentials in GitHub secrets, uses federated identity |
+| Entra ID scope enforcement | SMART scopes are enforced at token issuance, not at the FHIR resource layer |
 
----
+Full decision log: [docs/decisions/](docs/decisions/)
 
-## Project Highlights
+## Stack
 
-- **Bulk export validated:** `$export` produced 3 Patient + 2 Observation NDJSON records from `fhirhipaajoell` with `202 Accepted` polling and `200 OK` completion confirmed
-- **CI/CD pipeline green:** GitHub Actions 5-job pipeline — `lint` → `validate` → `deploy` → `smoke-test` → `fhir-validate` — all jobs passing, with Azure Policy compliance gate blocking deployment on any HIPAA tag violation
-- **De-identification confirmed:** `name` and `birthDate` redacted with `CRYPTOHASH` across all 3 Patient records; `anonymizationConfig.json` committed to repo as a reusable template
-- **Zero standing access:** OIDC federated identity between GitHub Actions and Azure — no client secrets, no subscription keys stored in any GitHub secret
-- **FHIR CapabilityStatement published:** Retrieved from `/metadata`, committed to `/docs/capability-statement.json`, documenting all supported FHIR interactions for the deployed server
-
----
-
-## AI Data Readiness
-
-This pipeline is designed as the **data governance foundation required before deploying clinical AI responsibly.**
-
-Clean, validated, de-identified FHIR data is not just an interoperability output — it is the prerequisite layer that most clinical AI projects fail to get right before a model reaches a clinical workflow.
-
-This pipeline provides:
-
-- **De-identified NDJSON export** ready for ML training pipelines — `name`, `birthDate`, and other direct identifiers removed per HIPAA Safe Harbor method 2
-- **OperationOutcome validation gate** ensuring every FHIR resource passing to the analytics layer is structurally valid — invalid resources are dead-lettered, not silently passed downstream
-- **Full audit lineage via Log Analytics** — every FHIR read and write operation captured, providing traceable data provenance for any model consuming this data
-- **CRYPTOHASH de-identification** aligned with HIPAA Safe Harbor method 2 — the foundational control required under the FDA AI/ML Software as a Medical Device (SaMD) action plan for training data governance
-
-> Reference: [FDA AI/ML-Based SaMD Action Plan](https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-software-medical-device)
-
----
+| Component | Service |
+|---|---|
+| Message ingestion | Azure Service Bus |
+| Orchestration | Azure Logic Apps (Consumption) |
+| Validation | Azure Functions (Python v2) |
+| FHIR store | Azure Health Data Services — FHIR R4 |
+| Analytics | Azure Synapse Analytics + ADLS Gen2 |
+| De-identification | AHDS $export with anonymizationConfig |
+| Secrets | Azure Key Vault |
+| Observability | Log Analytics + KQL |
+| Compliance guardrails | Azure Policy (deny effect) |
+| IaC | Bicep |
+| CI/CD | GitHub Actions with OIDC |
 
 ## Repository Structure
 
 ```
-azure-fhir-pipeline/
+├── docs/
+│   ├── architecture/          Architecture overview and Mermaid diagrams
+│   ├── decisions/             Architecture Decision Records (ADRs)
+│   ├── security.md            RBAC model, encryption posture, audit trail design
+│   ├── ci-cd-setup.md         OIDC configuration, app registration, RBAC roles
+│   └── deployment-guide.md    Step-by-step deployment instructions
 │
-├── .github/
-│   └── workflows/
-│       └── deploy-pipeline.yml       # 5-job CI/CD: lint, validate, deploy, smoke-test, fhir-validate
+├── iac/                       Bicep IaC — parameterized, prefix-driven naming
+│   ├── main.bicep
+│   ├── parameters.lab.json
+│   ├── parameters.prod.json
+│   └── modules/
 │
-├── iac/                               # Bicep Infrastructure as Code
-│   ├── main.bicep                     # Orchestration template
-│   ├── modules/                       # Per-service Bicep modules
-│   └── parameters/                    # Environment parameter files
+├── src/
+│   ├── functions/validate/    Azure Function — FHIR validation gate (Python v2)
+│   ├── logic-apps/            Logic App workflow definition
+│   └── fhir/                  CapabilityStatement
 │
-├── functions/                         # Azure Functions (Python 3.11)
-│   └── validate_fhir/                 # FHIR validation - returns OperationOutcome
-│
-├── docs/                              # Architecture and compliance artefacts
-│   ├── architecture-diagram.png       # Full pipeline architecture diagram
-│   ├── architecture-overview.md       # Mermaid source + component narrative
-│   └── capability-statement.json      # AHDS FHIR CapabilityStatement
-│
-├── fhir-samples/                      # Reference HL7 and FHIR examples
-│   ├── sample-oru-r01.hl7             # Synthetic ORU_R01 lab result message
-│   └── sample-fhir-output.json        # Corresponding FHIR R4 bundle output
-│
-├── week01-foundation/                 # Azure Core Architecture - RG, Key Vault, HIPAA tags, budget
-├── week02-hipaa-compliance/           # HIPAA Policy, Log Analytics, Monitor alert, action group
-├── week03-hl7-integration/            # Service Bus, HL7 source simulation, Logic App trigger
-├── week04-fhir-transform/             # AHDS workspace, $convert-data, ORU_R01 template
-├── week05-pipeline/                   # End-to-end Logic App, Service Bus to FHIR post
-├── week06-fhir-search/                # DiagnosticReport, Observation, FHIR search queries
-├── week07-smart-on-fhir/              # Entra ID app, SMART scopes, OIDC token flow, Postman
-├── week08-ehr-validation/             # Validation Function, OperationOutcome, quality gate
-├── week09-analytics/                  # $export, ADLS Gen2, Synapse serverless, de-identification
-├── week10-iac-cicd/                   # Bicep IaC, GitHub Actions 5-job pipeline, Azure Policy
-│
-├── anonymizationConfig.json           # AHDS de-identification config (CRYPTOHASH + redact rules)
-├── openrowset-query.sql               # Synapse Serverless query against de-identified NDJSON
-├── CONTRIBUTING.md                    # Folder conventions, naming standards, HIPAA tagging rules
-├── .gitignore                         # Python + Azure defaults
-└── README.md                          # This file
+├── fhir-samples/              Sample HL7 messages and FHIR R4 resources
+├── tests/postman/             Postman collection for pipeline testing
+├── anonymizationConfig.json   AHDS $export de-identification configuration
+└── .github/workflows/         GitHub Actions CI/CD pipeline
 ```
 
----
+## Deployment Quick Start
 
-## Quick Start
+**Prerequisites**
 
-These three commands let any reviewer validate the deployment without touching the Azure portal.
+- Azure subscription with Contributor access
+- Azure CLI installed and authenticated (`az login`)
+- GitHub repository with OIDC configured (see [docs/ci-cd-setup.md](docs/ci-cd-setup.md))
 
-**1. Authenticate**
+**Deploy IaC**
+
 ```bash
-az login
-az account set --subscription "<your-subscription-id>"
-```
+# Clone the repo
+git clone https://github.com/Joelonwuemene/azure-fhir-pipeline.git
+cd azure-fhir-pipeline
 
-**2. Validate the IaC (what-if — no resources created)**
-```bash
+# Set your deployment prefix (drives all resource naming)
+PREFIX=yourprefix
+
+# Deploy to lab environment
+az deployment group create \
+  --resource-group rg-hipaa-apps \
+  --template-file iac/main.bicep \
+  --parameters @iac/parameters.lab.json \
+  --parameters prefix=$PREFIX
+
+# Validate (what-if)
 az deployment group what-if \
   --resource-group rg-hipaa-apps \
   --template-file iac/main.bicep \
-  --parameters iac/parameters/lab.json
+  --parameters @iac/parameters.lab.json \
+  --parameters prefix=$PREFIX
 ```
 
-**3. Smoke test the FHIR endpoint**
-```bash
-# Get a Bearer token (requires az CLI logged in with FHIR Data Reader role)
-TOKEN=$(az account get-access-token \
-  --resource https://fhirhipaajoell.fhir.azurehealthcareapis.com \
-  --query accessToken -o tsv)
+**Manual Provisioning**
 
-# Query the CapabilityStatement
-curl -s -H "Authorization: Bearer $TOKEN" \
-  https://fhirhipaajoell.fhir.azurehealthcareapis.com/metadata \
-  | python3 -m json.tool | head -30
-```
+The following components were provisioned manually due to Azure portal dependencies and are not yet in Bicep. They are documented in [docs/deployment-guide.md](docs/deployment-guide.md):
 
-> The FHIR server `fhirhipaajoell` is a lab environment. Access requires appropriate RBAC assignment in the Azure subscription.
+- Azure Health Data Services workspace and FHIR R4 service
+- Logic App workflow definition (Designer-saved, not CLI-exportable reliably)
+- Managed Identity role assignments on FHIR service
+- ADLS Gen2 containers and AHDS $export configuration
 
----
+Parameterized Bicep coverage for these components is a planned improvement.
 
-## Compliance and Security
+## HIPAA Compliance Posture
 
-### HIPAA Tagging Strategy
+- All PHI in transit encrypted via TLS 1.2+
+- All PHI at rest encrypted via Azure-managed keys
+- RBAC enforced at FHIR service level via Managed Identity
+- Audit trail in Log Analytics for all FHIR read/write operations
+- De-identification via CRYPTOHASH before any data leaves the FHIR store
+- Azure Policy deny-effect prevents untagged or unencrypted resource creation
+- Key Vault enforces secret lifecycle and access logging
 
-All 10 Azure resources carry mandatory HIPAA tags enforced via Azure Policy (deny effect — deployment fails without them):
+Full security documentation: [docs/security.md](docs/security.md)
 
-| Tag | Value |
+## CI/CD Pipeline
+
+The GitHub Actions pipeline (`deploy-iac.yml`) runs five jobs on every push to `main`:
+
+| Job | Purpose |
 |---|---|
-| `DataClassification` | `PHI` |
-| `ComplianceFramework` | `HIPAA` |
-| `Environment` | `Lab` |
-| `Owner` | `Joel` |
+| lint | Bicep linting |
+| validate | ARM template validation against subscription |
+| deploy | Bicep deployment to lab resource group |
+| smoke-test | FHIR endpoint availability check |
+| fhir-validate | OperationOutcome response verification |
 
-### Secret Management
+Authentication uses OIDC federated credentials. No client secrets stored in GitHub. See [docs/ci-cd-setup.md](docs/ci-cd-setup.md) for setup instructions.
 
-- All secrets stored in `kv-hipaa-phi-joel` — no connection strings in Logic App app settings or environment variables
-- Key Vault uses RBAC access model (not legacy vault access policies)
-- GitHub Actions uses OIDC federated identity — zero client secrets stored in GitHub
+## Portfolio and Contact
 
-### Audit Trail
+Built as a reference implementation demonstrating end-to-end Azure healthcare integration architecture across a 12-week structured programme.
 
-- All Azure service diagnostic logs route to `law-hipaa-joel` (Log Analytics)
-- KQL queries capture every FHIR read, write, and export operation
-- Every dead-letter event is logged — providing a complete record of messages that did not reach the FHIR server
-
-### Cost Control Architecture
-
-The pipeline uses a two-layer cost control pattern — because Azure budget alerts have a 12-24 hour billing lag and cannot protect against a runaway Logic App execution loop in real time:
-
-| Layer | Mechanism | Fire Time |
-|---|---|---|
-| Primary | Azure Monitor alert on Logic App `RunsFailed > 5` over 5 min | ~5 minutes |
-| Backstop | Budget alert at 50% / 80% / 99% of $80/month | 12-24 hours |
-
----
-
-## Week-by-Week Build Summary
-
-| Week | Focus | Key Deliverable |
-|---|---|---|
-| W1 | Azure Core Architecture | Resource group, Key Vault, HIPAA tag policy, $80 budget with kill-switch |
-| W2 | HIPAA Compliance | Log Analytics workspace, Monitor alert (5-min fire), action group, budget thresholds |
-| W3 | HL7 Integration | Service Bus (`sb-hipaa-hl7-joel`), Logic App trigger, HL7 source simulation |
-| W4 | FHIR Transformation | AHDS workspace (`ahdshipaajoell`), `$convert-data`, ORU_R01 Liquid template |
-| W5 | End-to-End Pipeline | Logic App (`la-hipaa-hl7-processor`) wired Service Bus to FHIR post |
-| W6 | FHIR Search and DiagnosticReport | Patient + Observation + DiagnosticReport (LOINC-coded), FHIR search queries |
-| W7 | SMART on FHIR | Entra ID app (`fhir-client-joel`), SMART scopes, OIDC token flow, Postman validation |
-| W8 | EHR Integration and Data Quality | Validation Function (`func-hipaa-validate-joel`), OperationOutcome quality gate |
-| W9 | Bulk Export and Analytics | `$export` to ADLS Gen2, de-identification (CRYPTOHASH), Synapse OPENROWSET, CDS Hooks doc |
-| W10 | DevOps, IaC, and CI/CD | Bicep IaC, GitHub Actions 5-job pipeline, OIDC, Azure Policy gate, CapabilityStatement |
-
----
-
-## Author
-
-**Joel Onwuemene**
-Senior Healthcare IT Architect | FHIR | HL7 | Azure | Epic | Cerner
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/joel-onwuemene)
-
----
+- **LinkedIn:** [linkedin.com/in/joel-onwuemene](https://linkedin.com/in/joel-onwuemene)
+- **Contact:** [joel.azurearchitect@proton.me](mailto:joel.azurearchitect@proton.me)
 
 ## License
 
-[MIT License](./LICENSE)
+MIT. See [LICENSE](LICENSE).
