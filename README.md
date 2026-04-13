@@ -4,7 +4,7 @@ A reference implementation of a HIPAA-compliant HL7 v2.x to FHIR R4 transformati
 
 ## The Problem
 
-Medical devices generate HL7 v2.x messages. Modern EHR platforms consume FHIR R4 resources. The gap between these two standards is where integration failures occur — and in a clinical context, a message that converts successfully but writes malformed data to a FHIR store is more dangerous than one that fails outright. Most integration architectures catch the failure. Few catch the silent corruption before write.
+Medical devices generate HL7 v2.x messages. Modern EHR platforms consume FHIR R4 resources. The gap between these two standards is where integration failures occur - and in a clinical context, a message that converts successfully but writes malformed data to a FHIR store is more dangerous than one that fails outright. Most integration architectures catch the failure. Few catch the silent corruption before write.
 
 This pipeline enforces a validation gate at the transformation layer. A resource that fails FHIR $validate never reaches the FHIR store. The rejection is logged, auditable, and recoverable. That is the architectural decision most teams miss.
 
@@ -22,7 +22,7 @@ HL7 Device / Simulator
   (la-hipaa-hl7-processor)
         │
         ├──► Azure Function: FHIR Validation Gate
-        │    ($validate before write — rejects malformed resources)
+        │    ($validate before write - rejects malformed resources)
         │
         ▼
   Azure Health Data Services
@@ -33,10 +33,10 @@ HL7 Device / Simulator
         └──► Synapse Analytics (OPENROWSET queries on FHIR NDJSON)
 
 Cross-cutting:
-  Key Vault       — secrets and crypto key management
-  Log Analytics   — KQL audit trail for all pipeline events
-  Azure Policy    — deny-effect guardrails on resource compliance
-  GitHub Actions  — OIDC-authenticated CI/CD with Bicep IaC
+  Key Vault       - secrets and crypto key management
+  Log Analytics   - KQL audit trail for all pipeline events
+  Azure Policy    - deny-effect guardrails on resource compliance
+  GitHub Actions  - OIDC-authenticated CI/CD with Bicep IaC
 ```
 
 Full architecture diagram: [docs/architecture/overview.md](docs/architecture/overview.md)
@@ -60,7 +60,7 @@ Full decision log: [docs/decisions/](docs/decisions/)
 | Message ingestion | Azure Service Bus |
 | Orchestration | Azure Logic Apps (Consumption) |
 | Validation | Azure Functions (Python v2) |
-| FHIR store | Azure Health Data Services — FHIR R4 |
+| FHIR store | Azure Health Data Services - FHIR R4 |
 | Analytics | Azure Synapse Analytics + ADLS Gen2 |
 | De-identification | AHDS $export with anonymizationConfig |
 | Secrets | Azure Key Vault |
@@ -79,14 +79,14 @@ Full decision log: [docs/decisions/](docs/decisions/)
 │   ├── ci-cd-setup.md         OIDC configuration, app registration, RBAC roles
 │   └── deployment-guide.md    Step-by-step deployment instructions
 │
-├── iac/                       Bicep IaC — parameterized, prefix-driven naming
+├── iac/                       Bicep IaC - parameterized, prefix-driven naming
 │   ├── main.bicep
 │   ├── parameters.lab.json
 │   ├── parameters.prod.json
 │   └── modules/
 │
 ├── src/
-│   ├── functions/validate/    Azure Function — FHIR validation gate (Python v2)
+│   ├── functions/validate/    Azure Function - FHIR validation gate (Python v2)
 │   ├── logic-apps/            Logic App workflow definition
 │   └── fhir/                  CapabilityStatement
 │
