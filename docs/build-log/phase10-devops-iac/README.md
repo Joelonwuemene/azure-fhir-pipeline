@@ -1,4 +1,4 @@
-# Week 10 - DevOps, IaC, and CI/CD
+# Phase 10 - DevOps, IaC, and CI/CD
 
 ## Goal
 Deploy the full pipeline from code using Bicep IaC and a GitHub Actions CI/CD pipeline with OIDC federated identity, a compliance gate, and automated FHIR endpoint validation.

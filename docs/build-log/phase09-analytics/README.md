@@ -1,4 +1,4 @@
-# Week 09 - Bulk Export and Analytics
+# Phase 09 - Bulk Export and Analytics
 
 ## Goal
 Implement FHIR bulk export ($export) to Azure Data Lake, de-identify the output, and query it via Synapse Serverless — validating the full analytics pipeline from FHIR server to SQL query.

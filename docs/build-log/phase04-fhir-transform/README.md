@@ -1,4 +1,4 @@
-# Week 04 - FHIR Transformation via AHDS
+# Phase 04 - FHIR Transformation via AHDS
 
 ## Goal
 Transform HL7 v2.x ORU_R01 messages to FHIR R4 resources using the Azure Health Data Services $convert-data API and the default HL7v2 Liquid template.

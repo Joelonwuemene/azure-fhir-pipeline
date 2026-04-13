@@ -1,4 +1,4 @@
-# Week 01 - Azure Core Architecture
+# Phase 01 - Azure Core Architecture
 
 ## Goal
 Establish the Azure foundation for a HIPAA-compliant healthcare integration pipeline: resource group, Key Vault, mandatory PHI tagging policy, and a budget kill-switch.

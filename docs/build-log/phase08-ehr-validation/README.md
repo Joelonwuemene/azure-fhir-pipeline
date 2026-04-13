@@ -1,4 +1,4 @@
-# Week 08 - EHR Integration and Data Quality
+# Phase 08 - EHR Integration and Data Quality
 
 ## Goal
 Implement a FHIR validation quality gate as an Azure Function and wire it into the Logic App pipeline so invalid resources are intercepted before reaching the FHIR server.

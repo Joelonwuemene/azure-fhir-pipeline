@@ -1,4 +1,4 @@
-# Week 02 - HIPAA Compliance Controls
+# Phase 02 - HIPAA Compliance Controls
 
 ## Goal
 Implement audit, alerting, and cost control infrastructure so HIPAA compliance is structural and observable — not a post-deployment checklist.

@@ -1,4 +1,4 @@
-# Week 07 - SMART on FHIR Authentication
+# Phase 07 - SMART on FHIR Authentication
 
 ## Goal
 Implement the SMART App Launch authorization flow against Azure Health Data Services using Entra ID and validate scope enforcement behavior.

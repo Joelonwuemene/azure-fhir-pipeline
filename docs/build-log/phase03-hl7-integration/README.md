@@ -1,4 +1,4 @@
-# Week 03 - HL7 Integration and Service Bus
+# Phase 03 - HL7 Integration and Service Bus
 
 ## Goal
 Ingest HL7 v2.x ORU_R01 lab result messages via Azure Service Bus and trigger the Logic App orchestration layer.

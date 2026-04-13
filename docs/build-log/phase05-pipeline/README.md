@@ -1,4 +1,4 @@
-# Week 05 - End-to-End Pipeline
+# Phase 05 - End-to-End Pipeline
 
 ## Goal
 Wire the full message flow from Service Bus trigger through HL7 transformation to FHIR resource persistence in Azure Health Data Services.

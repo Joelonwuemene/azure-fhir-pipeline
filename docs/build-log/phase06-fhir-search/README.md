@@ -1,4 +1,4 @@
-# Week 06 - FHIR Search and DiagnosticReport
+# Phase 06 - FHIR Search and DiagnosticReport
 
 ## Goal
 Implement LOINC-coded FHIR R4 resources and validate FHIR search queries including _include, chained parameters, and search modifiers.
