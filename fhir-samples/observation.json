@@ -1,6 +1,6 @@
 {
   "resourceType": "Observation",
-  "id": "observation-joel-001",
+  "id": "observation-001",
   "status": "final",
   "category": [{
     "coding": [{
@@ -17,7 +17,7 @@
     }]
   },
   "subject": {
-    "reference": "Patient/patient-joel-001"
+    "reference": "Patient/patient-001"
   },
   "effectiveDateTime": "2026-04-01T08:00:00Z",
   "valueQuantity": {

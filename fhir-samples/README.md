@@ -13,7 +13,7 @@ This folder contains reference examples showing both sides of the HL7 v2.x to FH
 
 ## What These Demonstrate
 
-The `sample-oru-r01.hl7` file is a representative inbound message processed by the pipeline. The FHIR JSON files are the corresponding output resources persisted in Azure Health Data Services (`fhirhipaajoell`) after passing through the validation quality gate.
+The `sample-oru-r01.hl7` file is a representative inbound message processed by the pipeline. The FHIR JSON files are the corresponding output resources persisted in Azure Health Data Services (`<your-fhir-service>`) after passing through the validation quality gate.
 
 LOINC codes used in these samples are validated against the FHIR R4 specification and loinc.org.
 

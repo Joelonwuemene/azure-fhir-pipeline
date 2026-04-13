@@ -1,6 +1,6 @@
 {
   "resourceType": "DiagnosticReport",
-  "id": "diagnosticreport-joel-001",
+  "id": "diagnosticreport-001",
   "text": {
     "status": "generated",
     "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Comprehensive metabolic panel, John Smith, 2026-04-01</div>"
@@ -21,11 +21,11 @@
     }]
   },
   "subject": {
-    "reference": "Patient/patient-joel-001"
+    "reference": "Patient/patient-001"
   },
   "effectiveDateTime": "2026-04-01T08:00:00Z",
   "issued": "2026-04-01T09:00:00Z",
   "result": [{
-    "reference": "Observation/observation-joel-001"
+    "reference": "Observation/observation-001"
   }]
 }

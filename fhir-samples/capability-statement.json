@@ -1,6 +1,6 @@
 {
   "resourceType": "CapabilityStatement",
-  "id": "fhirhipaajoell-capability",
+  "id": "<your-fhir-service>-capability",
   "status": "active",
   "date": "2026-04-08",
   "kind": "instance",

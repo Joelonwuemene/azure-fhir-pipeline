@@ -66,14 +66,14 @@ jobs:
         id: token
         run: |
           TOKEN=$(az account get-access-token \
-            --resource https://ahdshipaajoell-fhirhipaajoell.fhir.azurehealthcareapis.com \
+            --resource https://<your-ahds-workspace>-<your-fhir-service>.fhir.azurehealthcareapis.com \
             --query accessToken -o tsv)
           echo "::add-mask::$TOKEN"
           echo "fhir_token=$TOKEN" >> $GITHUB_OUTPUT
       - name: FHIR metadata smoke test
         run: |
           curl -sf -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
-            https://ahdshipaajoell-fhirhipaajoell.fhir.azurehealthcareapis.com/metadata | \
+            https://<your-ahds-workspace>-<your-fhir-service>.fhir.azurehealthcareapis.com/metadata | \
             jq '.fhirVersion' | grep -q '4.0.1'
 
   fhir-validate:
