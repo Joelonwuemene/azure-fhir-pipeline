@@ -1,27 +1,22 @@
-[
-  {
-    "definitionVersion": "57.*.*",
-    "description": "This is the default set of policies monitored by Azure Security Center. It was automatically assigned as part of onboarding to Security Center. The default assignment contains only audit policies. For more information please visit https://aka.ms/ascpolicies",
-    "displayName": "ASC Default (subscription: e52e09da-a7a0-4022-93f1-94d73c5736e6)",
-    "enforcementMode": "Default",
-    "id": "/subscriptions/e52e09da-a7a0-4022-93f1-94d73c5736e6/providers/Microsoft.Authorization/policyAssignments/SecurityCenterBuiltIn",
-    "metadata": {
-      "assignedBy": "Security Center",
-      "createdBy": "4ca9c475-0640-4be3-a421-fa146d4e4002",
-      "createdOn": "2026-03-10T16:03:51.8465449Z"
-    },
-    "name": "SecurityCenterBuiltIn",
-    "parameters": {},
-    "policyDefinitionId": "/providers/Microsoft.Authorization/policySetDefinitions/1f3afdf9-d0c9-4c3d-847f-89da613e70a8",
-    "scope": "/subscriptions/e52e09da-a7a0-4022-93f1-94d73c5736e6",
-    "systemData": {
-      "createdAt": "2026-03-10T16:03:50.9769387Z",
-      "createdBy": "8edd93e1-2103-40b4-bd70-6e34e586362d",
-      "createdByType": "Application",
-      "lastModifiedAt": "2026-03-10T16:03:50.9769387Z",
-      "lastModifiedBy": "8edd93e1-2103-40b4-bd70-6e34e586362d",
-      "lastModifiedByType": "Application"
-    },
-    "type": "Microsoft.Authorization/policyAssignments"
-  }
-]
+{
+  "description": "HIPAA compliance policy assignment for Azure Healthcare FHIR pipeline.",
+  "displayName": "HIPAA Compliance - Healthcare FHIR Pipeline",
+  "enforcementMode": "Default",
+  "id": "/subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyAssignments/hipaa-fhir-pipeline",
+  "identity": null,
+  "location": "eastus",
+  "metadata": {
+    "createdBy": "<ENTRA_OBJECT_ID_1>",
+    "createdOn": "2025-01-01T00:00:00Z",
+    "updatedBy": "<ENTRA_OBJECT_ID_2>",
+    "updatedOn": "2025-01-01T00:00:00Z"
+  },
+  "name": "hipaa-fhir-pipeline",
+  "nonComplianceMessages": [],
+  "notScopes": [],
+  "parameters": {},
+  "policyDefinitionId": "/subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/hipaa-deny-unencrypted",
+  "resourceGroup": "rg-hipaa-apps",
+  "scope": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-hipaa-apps",
+  "type": "Microsoft.Authorization/policyAssignments"
+}
