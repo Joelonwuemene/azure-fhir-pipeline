@@ -22,12 +22,8 @@ param tags object = {
 var logAnalyticsName = '${prefix}-law-${environment}'
 var serviceBusNamespaceName = '${prefix}-sb-${environment}'
 var keyVaultName = '${prefix}-kv-${environment}'
-var functionAppName = '${prefix}-func-validate-${environment}'
-var storageAccountName = '${prefix}st${environment}'
-var appServicePlanName = '${prefix}-asp-${environment}'
 
 // --- Modules ---
-
 module logAnalytics 'modules/loganalytics.bicep' = {
   name: 'deploy-loganalytics'
   params: {
@@ -57,23 +53,10 @@ module keyVault 'modules/keyvault.bicep' = {
   }
 }
 
-module functionApp 'modules/functionapp.bicep' = {
-  name: 'deploy-functionapp'
-  params: {
-    functionAppName: functionAppName
-    storageAccountName: storageAccountName
-    appServicePlanName: appServicePlanName
-    location: location
-    tags: tags
-    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
-  }
-}
-
 // --- Outputs ---
 output logAnalyticsWorkspaceId string = logAnalytics.outputs.workspaceId
 output serviceBusNamespaceId string = serviceBus.outputs.namespaceId
 output keyVaultUri string = keyVault.outputs.vaultUri
-output functionAppId string = functionApp.outputs.functionAppId
 
-@description('Deploy AHDS workspace and FHIR service separately. See docs/deployment-guide.md for manual provisioning steps. AHDS workspace names require lowercase alphanumeric only.')
-output note string = 'AHDS FHIR service requires manual provisioning. See deployment-guide.md.'
+@description('Azure Function App and AHDS FHIR service require manual provisioning. See docs/deployment-guide.md.')
+output note string = 'Function App and AHDS FHIR service require manual provisioning. See deployment-guide.md.'
