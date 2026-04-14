@@ -51,7 +51,7 @@ jobs:
 
   smoke-test:
     needs: deploy
-    if: ${{ secrets.FHIR_ENDPOINT != '' }}
+    if: ${{ vars.FHIR_ENDPOINT != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +64,7 @@ jobs:
         id: token
         run: |
           TOKEN=$(az account get-access-token \
-            --resource ${{ secrets.FHIR_ENDPOINT }} \
+            --resource ${{ vars.FHIR_ENDPOINT }} \
             --query accessToken -o tsv)
           echo "::add-mask::$TOKEN"
           echo "fhir_token=$TOKEN" >> $GITHUB_OUTPUT
@@ -72,7 +72,7 @@ jobs:
         run: |
           curl -sf \
             -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
-            ${{ secrets.FHIR_ENDPOINT }}/metadata | \
+            ${{ vars.FHIR_ENDPOINT }}/metadata | \
             jq '.fhirVersion' | grep -q '4.0.1'
 
   fhir-validate:
