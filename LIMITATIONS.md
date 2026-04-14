@@ -4,7 +4,7 @@
 
 This is a 10-week self-directed portfolio build demonstrating end-to-end architecture decision-making across Azure healthcare integration. The goal was breadth and depth of architectural reasoning across a realistic domain: HIPAA-compliant HL7 v2.x to FHIR R4 transformation on Azure Health Data Services.
 
-It is not a production system. It was never designed to be. Evaluating it against production readiness criteria produces accurate findings that are largely beside the point.
+It is not a production system. It was never designed to be. The correct evaluation frame is architectural reasoning, not production readiness.
 
 The relevant evaluation question is: does the person who built this understand what production would require, and can they explain why each gap exists and how they would close it?
 
@@ -106,7 +106,7 @@ The ADLS Gen2 storage account (`stadlshipaajoell`) remains active with the `fhir
 
 ## What This Project Demonstrates
 
-The gaps above are implementation details that any senior engineer on a real project team would close during a production hardening sprint. None of them represent architectural misunderstanding.
+Each gap above has a documented production pattern. Closing them is a sprint of engineering work, not an architectural rethink.
 
 What this project does demonstrate:
 
@@ -117,8 +117,4 @@ What this project does demonstrate:
 - IaC and CI/CD patterns: Bicep modules, GitHub Actions with OIDC, Azure Policy deny gates, CapabilityStatement validation
 - Incident documentation: runaway message loop root cause analysis, Logic App header stripping, RBAC propagation timing, ADLS Gen2 HNS constraint. These are real failure modes, not synthetic exercises.
 
-The architecture decisions record (ADRs in `docs/architecture/`) documents context, tradeoffs, and consequences for each major decision. That is the correct artifact for evaluating whether someone can make and defend architecture decisions under constraint.
-
----
-
-*This document was written in response to a structured external portfolio review conducted April 2026. The reviewer's findings were accurate. The explanations above are the ones that belong in the repo.*
+The architecture decision records (ADRs in `docs/decisions/`) document context, tradeoffs, and consequences for each major decision. That is the correct artifact for evaluating whether someone can make and defend architecture decisions under constraint.
