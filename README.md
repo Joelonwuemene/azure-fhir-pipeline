@@ -2,11 +2,19 @@
 
 A reference implementation of a HIPAA-compliant HL7 v2.x to FHIR R4 transformation pipeline on Microsoft Azure. Designed for medical device manufacturers and health systems connecting clinical devices to FHIR-based EHR platforms including Epic and Cerner.
 
+## Project Scope
+
+This is a 10-week self-directed portfolio build demonstrating end-to-end architecture decision-making across Azure healthcare integration. It is not a production system and was not designed to be evaluated as one.
+
+The focus was breadth and depth of architectural reasoning across 10 integrated domains: HIPAA compliance, HL7 transformation, FHIR R4 modeling, SMART on FHIR, bulk export, de-identification, IaC, CI/CD, observability, and data quality validation. Gaps in test coverage, network isolation, and application CI/CD are real, deliberate, and explained in full.
+
+For a complete account of scope decisions, known gaps, and what production extension would look like, see [LIMITATIONS.md](./LIMITATIONS.md).
+
 ## The Problem
 
-Medical devices generate HL7 v2.x messages. Modern EHR platforms consume FHIR R4 resources. The gap between these two standards is where integration failures occur - and in a clinical context, a message that converts successfully but writes malformed data to a FHIR store is more dangerous than one that fails outright. Most integration architectures catch the failure. Few catch the silent corruption before write.
+Medical devices generate HL7 v2.x messages. Modern EHR platforms consume FHIR R4 resources. The gap between these two standards is where integration failures occur. In a clinical context, a message that converts successfully but writes malformed data to a FHIR store is more dangerous than one that fails outright. Most integration architectures catch the failure. Few catch the silent corruption before write.
 
-This pipeline enforces a validation gate at the transformation layer. A resource that fails FHIR $validate never reaches the FHIR store. The rejection is logged, auditable, and recoverable. That is the architectural decision most teams miss.
+This pipeline enforces a validation gate at the transformation layer. A resource that fails FHIR `$validate` never reaches the FHIR store. The rejection is logged, auditable, and recoverable. That is the architectural decision most teams miss.
 
 ## Architecture
 
@@ -39,7 +47,7 @@ Cross-cutting:
   GitHub Actions  - OIDC-authenticated CI/CD with Bicep IaC
 ```
 
-Full architecture diagram: [docs/architecture/overview.md](docs/architecture/overview.md)
+Full architecture diagram: [docs/architecture/overview.md](./docs/architecture/overview.md)
 
 ## Key Design Decisions
 
@@ -51,7 +59,7 @@ Full architecture diagram: [docs/architecture/overview.md](docs/architecture/ove
 | OIDC over client secret in CI/CD | Eliminates stored credentials in GitHub secrets, uses federated identity |
 | Entra ID scope enforcement | SMART scopes are enforced at token issuance, not at the FHIR resource layer |
 
-Full decision log: [docs/decisions/](docs/decisions/)
+Full decision log: [docs/decisions/](./docs/decisions/)
 
 ## Stack
 
@@ -62,7 +70,7 @@ Full decision log: [docs/decisions/](docs/decisions/)
 | Validation | Azure Functions (Python v2) |
 | FHIR store | Azure Health Data Services - FHIR R4 |
 | Analytics | Azure Synapse Analytics + ADLS Gen2 |
-| De-identification | AHDS $export with anonymizationConfig |
+| De-identification | AHDS `$export` with anonymizationConfig |
 | Secrets | Azure Key Vault |
 | Observability | Log Analytics + KQL |
 | Compliance guardrails | Azure Policy (deny effect) |
@@ -93,18 +101,19 @@ Full decision log: [docs/decisions/](docs/decisions/)
 ├── fhir-samples/              Sample HL7 messages and FHIR R4 resources
 ├── tests/postman/             Postman collection for pipeline testing
 ├── anonymizationConfig.json   AHDS $export de-identification configuration
+├── LIMITATIONS.md             Scope decisions, known gaps, production extension patterns
 └── .github/workflows/         GitHub Actions CI/CD pipeline
 ```
 
 ## Deployment Quick Start
 
-**Prerequisites**
+### Prerequisites
 
 - Azure subscription with Contributor access
 - Azure CLI installed and authenticated (`az login`)
-- GitHub repository with OIDC configured (see [docs/ci-cd-setup.md](docs/ci-cd-setup.md))
+- GitHub repository with OIDC configured (see [docs/ci-cd-setup.md](./docs/ci-cd-setup.md))
 
-**Deploy IaC**
+### Deploy IaC
 
 ```bash
 # Clone the repo
@@ -129,16 +138,16 @@ az deployment group what-if \
   --parameters prefix=$PREFIX
 ```
 
-**Manual Provisioning**
+### Manual Provisioning
 
-The following components were provisioned manually due to Azure portal dependencies and are not yet in Bicep. They are documented in [docs/deployment-guide.md](docs/deployment-guide.md):
+The following components were provisioned manually due to Azure platform dependencies and are not yet in Bicep. They are documented in [docs/deployment-guide.md](./docs/deployment-guide.md):
 
 - Azure Health Data Services workspace and FHIR R4 service
-- Logic App workflow definition (Designer-saved, not CLI-exportable reliably)
+- Logic App workflow definition (Designer-saved; Consumption tier workflow definition is not reliably exportable via CLI)
 - Managed Identity role assignments on FHIR service
-- ADLS Gen2 containers and AHDS $export configuration
+- ADLS Gen2 containers and AHDS `$export` configuration
 
-Parameterized Bicep coverage for these components is a planned improvement.
+The rationale for each manual step and the pattern for automating it in a production pipeline are documented in [LIMITATIONS.md](./LIMITATIONS.md).
 
 ## HIPAA Compliance Posture
 
@@ -150,11 +159,11 @@ Parameterized Bicep coverage for these components is a planned improvement.
 - Azure Policy deny-effect prevents untagged or unencrypted resource creation
 - Key Vault enforces secret lifecycle and access logging
 
-Full security documentation: [docs/security.md](docs/security.md)
+Full security documentation: [docs/security.md](./docs/security.md)
 
 ## CI/CD Pipeline
 
-The GitHub Actions pipeline (`deploy-iac.yml`) runs five jobs on every push to `main`:
+The GitHub Actions pipeline (`deploy-iac.yml`) runs five jobs on every push to main:
 
 | Job | Purpose |
 |---|---|
@@ -164,15 +173,16 @@ The GitHub Actions pipeline (`deploy-iac.yml`) runs five jobs on every push to `
 | smoke-test | FHIR endpoint availability check |
 | fhir-validate | OperationOutcome response verification |
 
-Authentication uses OIDC federated credentials. No client secrets stored in GitHub. See [docs/ci-cd-setup.md](docs/ci-cd-setup.md) for setup instructions.
+Authentication uses OIDC federated credentials. No client secrets stored in GitHub. See [docs/ci-cd-setup.md](./docs/ci-cd-setup.md) for setup instructions.
 
 ## Portfolio and Contact
 
-Built as a reference implementation demonstrating end-to-end Azure healthcare integration architecture across a 12-week structured programme.
+Built as a reference implementation demonstrating end-to-end Azure healthcare integration architecture across a 10-week structured programme.
 
-- **LinkedIn:** [linkedin.com/in/joel-onwuemene](https://linkedin.com/in/joel-onwuemene)
-- **Contact:** [joel.azurearchitect@proton.me](mailto:joel.azurearchitect@proton.me)
+- LinkedIn: [linkedin.com/in/joel-onwuemene](https://linkedin.com/in/joel-onwuemene)
+- GitHub: [github.com/Joelonwuemene/azure-fhir-pipeline](https://github.com/Joelonwuemene/azure-fhir-pipeline)
+- Contact: joel.azurearchitect@proton.me
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See LICENSE.
