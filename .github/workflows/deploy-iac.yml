@@ -1,14 +1,11 @@
 name: HIPAA IaC Pipeline
-
 on:
   push:
     branches: [main]
     paths: ['iac/**']
-
 permissions:
   id-token: write
   contents: read
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -54,6 +51,7 @@ jobs:
 
   smoke-test:
     needs: deploy
+    if: ${{ secrets.FHIR_ENDPOINT != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,14 +64,15 @@ jobs:
         id: token
         run: |
           TOKEN=$(az account get-access-token \
-            --resource https://<your-ahds-workspace>-<your-fhir-service>.fhir.azurehealthcareapis.com \
+            --resource ${{ secrets.FHIR_ENDPOINT }} \
             --query accessToken -o tsv)
           echo "::add-mask::$TOKEN"
           echo "fhir_token=$TOKEN" >> $GITHUB_OUTPUT
       - name: FHIR metadata smoke test
         run: |
-          curl -sf -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
-            https://<your-ahds-workspace>-<your-fhir-service>.fhir.azurehealthcareapis.com/metadata | \
+          curl -sf \
+            -H "Authorization: Bearer ${{ steps.token.outputs.fhir_token }}" \
+            ${{ secrets.FHIR_ENDPOINT }}/metadata | \
             jq '.fhirVersion' | grep -q '4.0.1'
 
   fhir-validate:
