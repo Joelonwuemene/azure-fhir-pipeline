@@ -1,0 +1,11 @@
+MSH|^~\&|LAB_SYSTEM|GENERAL_HOSPITAL|FHIR_PIPELINE|AZURE_AHDS|20240315142530||ORU^R01^ORU_R01|MSG20240315001|P|2.5|||NE|NE|USA|ASCII|||
+PID|1||MRN-789456^^^GENERAL_HOSPITAL^MR||SYNTHETIC^JAMES^ROBERT^^MR||19820714|M|||123 PLACEHOLDER STREET^^NORWALK^CT^06850^USA|||||||ACC-2024-001||
+PV1|1|O|OUTPATIENT^^^GENERAL_HOSPITAL||||NPI-100001^DOE^JANE^^^DR||||||||||VN-2024-78945|||||||||||||||||||||||||20240315140000|
+ORC|RE|ORD-2024-001|FIL-2024-001|GRP-2024-001|CM||||20240315142000|||NPI-100001^DOE^JANE^^^DR|
+OBR|1|ORD-2024-001|FIL-2024-001|2093-3^Cholesterol [Mass/volume] in Serum or Plasma^LN|||20240315140000|20240315142000|||||||NPI-100001^DOE^JANE^^^DR||||||20240315142530|||F||||||
+OBX|1|NM|2093-3^Cholesterol [Mass/volume] in Serum or Plasma^LN||185|mg/dL|<200|N|||F|||20240315142000||NPI-200001^SMITH^ROBERT^^^DR|
+OBX|2|NM|2085-9^Cholesterol in HDL [Mass/volume] in Serum or Plasma^LN||55|mg/dL|>40|N|||F|||20240315142000||NPI-200001^SMITH^ROBERT^^^DR|
+OBX|3|NM|13457-7^Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation^LN||110|mg/dL|<130|N|||F|||20240315142000||NPI-200001^SMITH^ROBERT^^^DR|
+OBX|4|NM|2571-8^Triglycerides [Mass/volume] in Serum or Plasma^LN||140|mg/dL|<150|N|||F|||20240315142000||NPI-200001^SMITH^ROBERT^^^DR|
+NTE|1||Fasting lipid panel. Patient fasted for 12 hours prior to collection.|RE
+NTE|2||All results within normal reference ranges. Recommend routine follow-up in 12 months.|RE
