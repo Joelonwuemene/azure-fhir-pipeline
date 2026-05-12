@@ -47,6 +47,8 @@ Cross-cutting:
   GitHub Actions  - OIDC-authenticated CI/CD with Bicep IaC
 ```
 
+![Pipeline Architecture](./docs/architecture-diagram.png)
+
 Full architecture diagram: [docs/architecture/overview.md](./docs/architecture/overview.md)
 
 ## Key Design Decisions
